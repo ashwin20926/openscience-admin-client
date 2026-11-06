@@ -1,0 +1,300 @@
+body {
+  overflow: hidden;
+}
+.login-area {
+  width: 360px;
+  margin: 5% auto;
+}
+
+.sidebar {
+  height: calc(100vh - 56px);
+  border-right: 1px solid #ccc;
+  .nav {
+    display: block;
+    ul {
+      margin: 0;
+      padding: 0;
+      li {
+        list-style: none;
+        padding: 5px 10px;
+        a {
+          text-decoration: none;
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+
+      .has-submenu {
+        details {
+          summary {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            list-style: none;
+            padding: 4px 0;
+            color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+            &:hover {
+              color: #0d6efd;
+            }
+
+            .caret {
+              font-size: 1rem;
+              margin-left: 8px;
+              transition: transform 0.2s ease;
+            }
+          }
+
+          summary::-webkit-details-marker {
+            display: none;
+          }
+
+          &[open] {
+            .caret {
+              transform: rotate(180deg);
+            }
+          }
+
+          .submenu {
+            margin: 6px 0 0 12px;
+            padding: 0;
+
+            li {
+              padding: 3px 0;
+
+              a {
+                font-size: 0.95rem;
+                color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+                display: block;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+.notification-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.page-header {
+  border-bottom: 1px solid #ccc;
+  padding: 10px 0;
+  margin-bottom: 10px;
+  h1 {
+    font-weight: 200;
+    font-size: 20px;
+  }
+}
+// .navbar-nav {
+//   position: absolute;
+//   left: 1375px;
+// }
+
+.table-data {
+  overflow: auto;
+  height: calc(100vh - 130px);
+  &.archive-page {
+    height: calc(100vh - 225px);
+  }
+  &.upload-files-table {
+    height: calc(100vh - 370px);
+  }
+}
+.page {
+  position: relative;
+}
+
+.create-btn {
+  display: flex;
+  position: absolute;
+  right: 15px;
+  top: 7px;
+  .btn-primary {
+    margin-left: 20px;
+  }
+  input {
+    width: 400px;
+  }
+}
+
+.search-input {
+  display: flex;
+  position: absolute;
+  right: 200px;
+  top: 7px;
+  input {
+    width: 400px;
+  }
+}
+.navbar {
+  padding: 10px 20px !important;
+  width: 100%;
+}
+
+
+
+.fulltext-section {
+  margin: 0;
+  padding: 0;
+}
+.fulltext-section .ft-section-list {
+  margin: 0;
+  padding: 0;
+  background: #f3f3f3;
+  border: 1px solid #ccc;
+}
+.fulltext-section .ft-section-wrap {
+  position: relative;
+  margin-left: 15px;
+}
+.fulltext-section .ft-section-wrap .section-icon {
+  padding: 0;
+  display: inline-block;
+}
+.fulltext-section .ft-section-wrap .section-icon .bi {
+  border: 1px solid #ccc;
+  padding: 0;
+  border-radius: 50%;
+  width: 35px;
+  cursor: pointer;
+  height: 35px;
+  text-align: center;
+  line-height: 35px;
+  margin-right: 10px;
+}
+.fulltext-section .ft-section-list {
+  margin-bottom: 10px;
+}
+.fulltext-section .ft-section-list li {
+  list-style: none;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+  display: inline-block;
+}
+.fulltext-section .ft-section-list li a {
+  padding: 10px;
+  display: block;
+}
+.fulltext-section .ft-section-list li a:hover {
+  background: #cccccc;
+}
+.fulltext-section .ft-section-list li:last-child {
+  border-bottom: 0 none;
+}
+.fulltext-section .ft-section-box {
+  min-height: 200px;
+  border: 1px solid #ccc;
+  padding: 0;
+  margin-bottom: 10px;
+  position: relative;
+}
+.fulltext-section .ft-section-box .section-title {
+  font-size: 15px;
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fulltext-section .ft-section-box .section-title input {
+  max-width: 220px;
+  margin-right: 10px;
+}
+.fulltext-section .ft-section-box .section-title .insertable-option {
+  font-weight: normal;
+  background: #f3f3f3;
+  border-radius: 5px;
+  font-size: 10px;
+  padding: 5px;
+  color: #428bca;
+  letter-spacing: 1px;
+  border: 1px solid #ccc;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+.fulltext-section .ft-section-box .section-title .insertable-option:hover {
+  background: #ccc;
+}
+.fulltext-section .ft-section-box .insert-option-select {
+  padding: 5px;
+  border-radius: 5px;
+  position: absolute;
+  right: 20px;
+  top: 5px;
+}
+.fulltext-section .ft-section-box .form-group {
+  margin: 15px 0;
+}
+.fulltext-section .ft-section-box .ft-tags-box .form-group {
+  margin: 10px 0;
+}
+.fulltext-section .ft-section-box .form-group .dropdown li a {
+  cursor: pointer;
+}
+.fulltext-section .ft-section-box .dropdown {
+  width: 80px;
+  float: right;
+  margin-top: 10px;
+  display: none;
+}
+.fulltext-section .ft-section-box .form-group:hover .dropdown,
+.fulltext-section .ft-section-box .row:hover .dropdown {
+  display: inline-block;
+}
+.fulltext-section .ft-section-box .bi {
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  text-align: center;
+  margin: 0 5px;
+}
+
+.fulltext-section .ft-section-box .paragraph_with_inline_heading_box .col-sm-12:first-child {
+  width: 25%;
+  float: left;
+}
+.fulltext-section .ft-section-box .paragraph_with_inline_heading_box .col-sm-12:nth-child(2) {
+  width: 75%;
+  float: left;
+}
+.fulltext-section .ft-section-box .col-sm-12 {
+  margin-bottom: 5px;
+  text-align: left;
+}
+.fulltext-section .ft-section-box textarea.form-control {
+  min-height: 100px;
+}
+.pad0 {
+  padding: 0;
+}
+.ag-cell {
+  border-right: 1px solid #ccc;
+}
+
+@media (min-width: 992px) {
+    .navbar-expand-lg .navbar-nav {
+        position: absolute !important;
+        right: 22px;
+    }
+}
