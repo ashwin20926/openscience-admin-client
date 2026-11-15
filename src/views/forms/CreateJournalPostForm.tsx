@@ -50,7 +50,6 @@ interface CreateJournalPostFormData {
   post_name: string;
   post_slug: string;
   journal_slug: string;
-  category_id: string;
   journal_id: string;
   post_content: string;
   post_title_tag: string;
@@ -71,7 +70,6 @@ const CreateJournalPostForm = forwardRef<
     post_name: "",
     post_slug: "",
     journal_slug: "",
-    category_id: "",
     journal_id: "",
     post_content: "",
     post_title_tag: "",
@@ -88,13 +86,6 @@ const CreateJournalPostForm = forwardRef<
       formRef.current?.requestSubmit();
     },
   }));
-
-  const categories = [
-    { id: "10", name: "Medical" },
-    { id: "20", name: "Biotechnology" },
-    { id: "30", name: "Biology" },
-    { id: "40", name: "Pharmaceutical" },
-  ];
 
   /*
    * TinyMCE change handler
@@ -135,7 +126,6 @@ const CreateJournalPostForm = forwardRef<
           post_name: journal.post_name?.toString() || "",
           post_slug: journal.post_slug?.toString() || "",
           journal_slug: journal.journal_slug?.toString() || "",
-          category_id: journal.category_id?.toString() || "",
           journal_id: journal.journal_id?.toString() || "",
           post_content: journal.post_content?.toString() || "",
           post_title_tag: journal.post_title_tag?.toString() || "",
@@ -225,7 +215,6 @@ const CreateJournalPostForm = forwardRef<
         id: formData.id ?? undefined,
         post_name: formData.post_name || "",
         post_slug: formData.post_slug || "",
-        category_id: formData.category_id || "",
         journal_id: formData.journal_id || "",
         post_content: formData.post_content || "",
         post_title_tag: formData.post_title_tag || "",
@@ -309,35 +298,6 @@ const CreateJournalPostForm = forwardRef<
                 />
               </div>
             </div>
-            {/* Main Category */}
-            <div className="row mb-3 align-items-center">
-              <label
-                htmlFor="category_id"
-                className="col-sm-3 col-form-label text-sm-end fw-semibold"
-              >
-                Main Category Name
-              </label>
-
-              <div className="col-sm-9">
-                <select
-                  id="category_id"
-                  name="category_id"
-                  className="form-select"
-                  value={formData.category_id}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Category</option>
-
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
             <div className="row mb-3 align-items-center">
               <label htmlFor="journal_id" className="col-sm-3 col-form-label text-sm-end fw-semibold">
                 Journal Name
@@ -354,15 +314,13 @@ const CreateJournalPostForm = forwardRef<
                   <option value="">
                     {journalLoading ? 'Loading journals...' : 'Select Journal'}
                   </option>
-                  {journalGroups.map((group) => (
-                    <optgroup key={group.categoryName} label={group.categoryName}>
-                      {group.journals.map((journal) => (
-                        <option key={journal.id} value={journal.id}>
-                          {journal.label}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
+                  {journalGroups.flatMap((group) =>
+                    group.journals.map((journal) => (
+                      <option key={journal.id} value={journal.id}>
+                        {journal.label}
+                      </option>
+                    )),
+                  )}
                 </select>
               </div>
             </div>

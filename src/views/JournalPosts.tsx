@@ -67,9 +67,8 @@ const JournalPosts = () => {
   };
 
   const [columnDefs] = useState([
-    { headerName: "Post Name", field: "post_name", width: 200 },
-    { headerName: "Journal Name", field: "journal_name", width: 350 },
-    { headerName: "Category Name", field: "category_name", width: 140 },
+    { headerName: "Post Name", field: "post_name", width: 300 },
+    { headerName: "Journal Name", field: "journal_name", width: 400 },
     { headerName: "Created Date", field: "created_date", width: 150 },
     { headerName: "Updated Date", field: "updated_date", width: 150 },
 

@@ -14,6 +14,7 @@ const Archives = () => {
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState<any | null>(null);
   const pageSize = 15;
+  const isLocalhost = window.location.hostname.includes('localhost');
 
   const confirmDelete = useConfirmDelete();
 
@@ -68,8 +69,35 @@ const Archives = () => {
   };
 
   const [columnDefs] = useState([
-    { headerName: "Post Title", field: "post_title", width: 200 },
+    {
+      headerName: "Post Title",
+      field: "post_title",
+      width: 200,
+      cellRenderer: (params: { value?: string; data?: { post_browser_title_slug?: string; post_title?: string } }) => {
+        const slug = params.data?.post_title;
+        if (!slug) return params.value ?? '';
+
+        const baseUrl = isLocalhost
+          ? 'http://localhost/openscience/fulltextarticles/'
+          : 'http://www.opensciencepublications.com/fulltextarticles/';
+
+        return <a href={`${baseUrl}${encodeURIComponent(slug)}.html`}>{params.value}</a>;
+      },
+    },
     { headerName: "Post Browser Title", field: "post_browser_title", width: 500 },
+    { headerName: "Post Browser Title Slug", field: "post_browser_title_slug", width: 220 },
+    { headerName: "Post Content", field: "post_content", width: 350 },
+    { headerName: "Volume", field: "volume", width: 120 },
+    { headerName: "Issue", field: "Issue", width: 120 },
+    { headerName: "Season", field: "season", width: 120 },
+    { headerName: "Special Issue", field: "special_issue", width: 160 },
+    { headerName: "Supplementary Issue", field: "suplementary_issue", width: 180 },
+    { headerName: "Issue QA", field: "issue_qa", width: 120 },
+    { headerName: "Submitted Date", field: "submitted_date", width: 160 },
+    { headerName: "Accepted Date", field: "accepted_date", width: 160 },
+    { headerName: "Published Date", field: "published_date", width: 160 },
+    { headerName: "First Page", field: "first_page", width: 120 },
+    { headerName: "Last Page", field: "last_page", width: 120 },
     { headerName: "Post Date", field: "post_date", width: 200 },
   ]);
   const [totalCount, setTotalCount] = useState(0);

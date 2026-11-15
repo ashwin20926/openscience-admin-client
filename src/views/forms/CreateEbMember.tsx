@@ -65,11 +65,6 @@ interface JournalOption {
   label: string;
 }
 
-interface JournalGroup {
-  categoryName: string;
-  journals: JournalOption[];
-}
-
 const CreateJournalPage = forwardRef<
   CreateJournalArchiveHandle,
   CreateJournalArchiveProps
@@ -94,15 +89,8 @@ const CreateJournalPage = forwardRef<
   const [serverMsg, setServerMsg] = useState('');
   const [, setLoading] = useState(false);
 
-  const [journalGroups, setJournalGroups] = useState<JournalGroup[]>([]);
+  const [journals, setJournals] = useState<JournalOption[]>([]);
   const [journalLoading, setJournalLoading] = useState(false);
-
-  const categories = [
-    { id: '10', name: 'Medical' },
-    { id: '20', name: 'Biotechnology' },
-    { id: '30', name: 'Biology' },
-    { id: '40', name: 'Pharmaceutical' },
-  ];
 
   useImperativeHandle(ref, () => ({
     requestSubmit: () => {
@@ -121,35 +109,15 @@ const CreateJournalPage = forwardRef<
 
       const data = response?.data?.data || [];
 
-      const grouped: Record<string, JournalOption[]> = {};
-
-      data.forEach((item: any) => {
-        const categoryName =
-          item.category_name || 'Uncategorized';
-
-        if (!grouped[categoryName]) {
-          grouped[categoryName] = [];
-        }
-
-        grouped[categoryName].push({
+      setJournals(data.map((item: any) => ({
           id: item.id ?? item.journal_id ?? '',
           label:
             item.journal_name ||
             `Journal ${item.id ?? item.journal_id ?? ''}`,
-        });
-      });
-
-      const groupedOptions: JournalGroup[] = Object.keys(
-        grouped
-      ).map((categoryName) => ({
-        categoryName,
-        journals: grouped[categoryName],
-      }));
-
-      setJournalGroups(groupedOptions);
+        })));
     } catch (error) {
       console.error('Failed to fetch journal options', error);
-      setJournalGroups([]);
+      setJournals([]);
     } finally {
       setJournalLoading(false);
     }
@@ -426,8 +394,44 @@ const CreateJournalPage = forwardRef<
             onSubmit={handleSubmit}
             id="journal_archive_form"
           >
-            {/* Post Slug */}
+            
+            {/* Journal */}
             <div className="row mb-3 align-items-center">
+              <label
+                htmlFor="journal_id"
+                className="col-sm-3 col-form-label text-sm-end fw-semibold"
+              >
+                Journal Name
+              </label>
+
+              <div className="col-sm-9">
+                <select
+                  id="journal_id"
+                  name="journal_id"
+                  className="form-select"
+                  value={formData.journal_id}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">
+                    {journalLoading
+                      ? 'Loading journals...'
+                      : 'Select Journal'}
+                  </option>
+
+                  {journals.map((journal) => (
+                    <option
+                      key={journal.id}
+                      value={journal.id}
+                    >
+                      {journal.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {/* Post Slug */}
+            {/* <div className="row mb-3 align-items-center">
               <label
                 htmlFor="eb_post_slug"
                 className="col-sm-3 col-form-label text-sm-end fw-semibold"
@@ -445,10 +449,10 @@ const CreateJournalPage = forwardRef<
                   onChange={handleChange}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Journal Slug */}
-            <div className="row mb-3 align-items-center">
+            {/* <div className="row mb-3 align-items-center">
               <label
                 htmlFor="eb_journal_slug"
                 className="col-sm-3 col-form-label text-sm-end fw-semibold"
@@ -466,7 +470,7 @@ const CreateJournalPage = forwardRef<
                   onChange={handleChange}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* EB Member Name */}
             <div className="row mb-3 align-items-center">
@@ -510,85 +514,47 @@ const CreateJournalPage = forwardRef<
               </div>
             </div>
 
-            {/* Category */}
+                        {/* EB Member Photo */}
             <div className="row mb-3 align-items-center">
               <label
-                htmlFor="category_id"
+                htmlFor="eb_member_photo"
                 className="col-sm-3 col-form-label text-sm-end fw-semibold"
               >
-                Category Name
+                Eb Member Photo
               </label>
 
               <div className="col-sm-9">
-                <select
-                  id="category_id"
-                  name="category_id"
-                  className="form-select"
-                  value={formData.category_id}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">
-                    Select Category
-                  </option>
+                <input
+                  type="file"
+                  id="eb_member_photo"
+                  name="eb_member_photo"
+                  className="form-control"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
 
-                  {categories.map((cat) => (
-                    <option
-                      key={cat.id}
-                      value={cat.id}
-                    >
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                {formData.eb_member_photo && (
+                  <div className="d-flex align-items-center mt-2 p-2 bg-light rounded border">
+                    <span className="me-auto text-truncate">
+                      {formData.eb_member_photo instanceof
+                      File
+                        ? formData.eb_member_photo
+                            .name
+                        : String(
+                            formData.eb_member_photo
+                          )}
+                    </span>
+
+                    <button
+                      type="button"
+                      className="btn-close ms-2"
+                      aria-label="Remove"
+                      onClick={removeFile}
+                    />
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Journal */}
-            <div className="row mb-3 align-items-center">
-              <label
-                htmlFor="journal_id"
-                className="col-sm-3 col-form-label text-sm-end fw-semibold"
-              >
-                Journal Name
-              </label>
-
-              <div className="col-sm-9">
-                <select
-                  id="journal_id"
-                  name="journal_id"
-                  className="form-select"
-                  value={formData.journal_id}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">
-                    {journalLoading
-                      ? 'Loading journals...'
-                      : 'Select Journal'}
-                  </option>
-
-                  {journalGroups.map((group) => (
-                    <optgroup
-                      key={group.categoryName}
-                      label={group.categoryName}
-                    >
-                      {group.journals.map(
-                        (journal) => (
-                          <option
-                            key={journal.id}
-                            value={journal.id}
-                          >
-                            {journal.label}
-                          </option>
-                        )
-                      )}
-                    </optgroup>
-                  ))}
-                </select>
-              </div>
-            </div>
-
             {/* Country */}
             <div className="row mb-3 align-items-center">
               <label
@@ -611,49 +577,6 @@ const CreateJournalPage = forwardRef<
                 />
               </div>
             </div>
-
-            {/* Description */}
-            <div className="row mb-3">
-              <label className="col-sm-3 col-form-label text-sm-end fw-semibold">
-                Eb Member Description
-              </label>
-
-              <div className="col-sm-9">
-                <Editor
-                  licenseKey="gpl"
-                  value={formData.eb_member_desc}
-                  init={{
-                    height: 300,
-                    menubar: false,
-                    plugins: [
-                      'advlist',
-                      'autolink',
-                      'lists',
-                      'link',
-                      'image',
-                      'charmap',
-                      'preview',
-                      'anchor',
-                      'searchreplace',
-                      'visualblocks',
-                      'code',
-                      'fullscreen',
-                      'insertdatetime',
-                      'media',
-                      'table',
-                    ],
-                    toolbar:
-                      'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
-                    skin: 'oxide',
-                    content_css: 'default',
-                  }}
-                  onEditorChange={
-                    handleEditorChange
-                  }
-                />
-              </div>
-            </div>
-
             {/* Editor In Chief */}
             <div className="row mb-3 align-items-center">
               <label className="col-sm-3 col-form-label text-sm-end fw-semibold">
@@ -708,48 +631,48 @@ const CreateJournalPage = forwardRef<
                 </div>
               </div>
             </div>
-
-            {/* EB Member Photo */}
-            <div className="row mb-3 align-items-center">
-              <label
-                htmlFor="eb_member_photo"
-                className="col-sm-3 col-form-label text-sm-end fw-semibold"
-              >
-                Eb Member Photo
+            {/* Description */}
+            <div className="row mb-3">
+              <label className="col-sm-3 col-form-label text-sm-end fw-semibold">
+                Eb Member Description
               </label>
 
               <div className="col-sm-9">
-                <input
-                  type="file"
-                  id="eb_member_photo"
-                  name="eb_member_photo"
-                  className="form-control"
-                  accept="image/*"
-                  onChange={handleFileChange}
+                <Editor
+                  licenseKey="gpl"
+                  value={formData.eb_member_desc}
+                  init={{
+                    height: 300,
+                    menubar: false,
+                    plugins: [
+                      'advlist',
+                      'autolink',
+                      'lists',
+                      'link',
+                      'image',
+                      'charmap',
+                      'preview',
+                      'anchor',
+                      'searchreplace',
+                      'visualblocks',
+                      'code',
+                      'fullscreen',
+                      'insertdatetime',
+                      'media',
+                      'table',
+                    ],
+                    toolbar:
+                      'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+                    skin: 'oxide',
+                    content_css: 'default',
+                  }}
+                  onEditorChange={
+                    handleEditorChange
+                  }
                 />
-
-                {formData.eb_member_photo && (
-                  <div className="d-flex align-items-center mt-2 p-2 bg-light rounded border">
-                    <span className="me-auto text-truncate">
-                      {formData.eb_member_photo instanceof
-                      File
-                        ? formData.eb_member_photo
-                            .name
-                        : String(
-                            formData.eb_member_photo
-                          )}
-                    </span>
-
-                    <button
-                      type="button"
-                      className="btn-close ms-2"
-                      aria-label="Remove"
-                      onClick={removeFile}
-                    />
-                  </div>
-                )}
               </div>
             </div>
+
 
             {/* Server Message */}
             <div className="row mt-4">

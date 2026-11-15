@@ -41,7 +41,7 @@ const CreateLatestArticleForm = forwardRef<CreateJournalArchiveHandle, CreateLat
     requestSubmit: () => formRef.current?.requestSubmit(),
   }));
 
-  const [journalGroups, setJournalGroups] = useState<Array<{ categoryName: string; journals: Array<{ id: string | number; label: string }> }>>([]);
+  const [journals, setJournals] = useState<Array<{ id: string | number; label: string }>>([]);
   const [journalLoading, setJournalLoading] = useState(false);
 
 
@@ -51,29 +51,13 @@ const CreateLatestArticleForm = forwardRef<CreateJournalArchiveHandle, CreateLat
       const response = await axiosInstance.get('getOnlyJournals');
       const data = response?.data?.data || [];
 
-      const grouped: Record<string, Array<{ id: string | number; label: string }>> = {};
-
-      data.forEach((item: any) => {
-        const categoryName = item.category_name || 'Uncategorized';
-        if (!grouped[categoryName]) {
-          grouped[categoryName] = [];
-        }
-
-        grouped[categoryName].push({
+      setJournals(data.map((item: any) => ({
           id: item.id ?? item.journal_id ?? '',
           label: item.journal_name || `Journal ${item.id}`,
-        });
-      });
-
-      const groupedOptions: Array<{ categoryName: string; journals: Array<{ id: string | number; label: string }> }> = Object.keys(grouped).map((categoryName) => ({
-        categoryName,
-        journals: grouped[categoryName],
-      }));
-
-      setJournalGroups(groupedOptions);
+        })));
     } catch (error) {
       console.error('Failed to fetch journal options', error);
-      setJournalGroups([]);
+      setJournals([]);
     } finally {
       setJournalLoading(false);
     }
@@ -238,14 +222,10 @@ const CreateLatestArticleForm = forwardRef<CreateJournalArchiveHandle, CreateLat
                   <option value="">
                     {journalLoading ? 'Loading journals...' : 'Select Journal'}
                   </option>
-                  {journalGroups.map((group) => (
-                    <optgroup key={group.categoryName} label={group.categoryName}>
-                      {group.journals.map((journal) => (
-                        <option key={journal.id} value={journal.id}>
-                          {journal.label}
-                        </option>
-                      ))}
-                    </optgroup>
+                  {journals.map((journal) => (
+                    <option key={journal.id} value={journal.id}>
+                      {journal.label}
+                    </option>
                   ))}
                 </select>
               </div>

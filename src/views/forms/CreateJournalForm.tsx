@@ -8,34 +8,6 @@ import React, {
 
 import axiosInstance from "../../auth/axiosInstance";
 
-import { Editor } from "@tinymce/tinymce-react";
-import tinymce from "tinymce/tinymce";
-
-(window as any).tinymce = tinymce;
-
-import "tinymce/themes/silver";
-import "tinymce/icons/default";
-import "tinymce/models/dom/model";
-
-import "tinymce/skins/ui/oxide/skin.min.css";
-import "tinymce/skins/ui/oxide/content.min.css";
-
-import "tinymce/plugins/advlist";
-import "tinymce/plugins/autolink";
-import "tinymce/plugins/lists";
-import "tinymce/plugins/link";
-import "tinymce/plugins/image";
-import "tinymce/plugins/charmap";
-import "tinymce/plugins/preview";
-import "tinymce/plugins/anchor";
-import "tinymce/plugins/searchreplace";
-import "tinymce/plugins/visualblocks";
-import "tinymce/plugins/code";
-import "tinymce/plugins/fullscreen";
-import "tinymce/plugins/insertdatetime";
-import "tinymce/plugins/media";
-import "tinymce/plugins/table";
-
 type CreateJournalArchiveHandle = {
   requestSubmit: () => void;
 };
@@ -50,16 +22,19 @@ interface CreateJournalFormData {
   journal_url_slug: string;
   journal_name: string;
   issn_number: string;
-  impact_factor: string;
-  impact_factor_equation: string;
+  created_date: string;
+  updated_date: string;
   journal_meta_keywords: string;
-  journal_ic_value: string;
-  main_category_id: string | null;
+  main_category_id: string;
   journal_description: string;
   banner_image: string;
   sidebar_image: string;
+  journal_image: File | string | null;
+  deleted: string;
   id?: string | number | null;
 }
+
+const getToday = () => new Date().toISOString().slice(0, 10);
 
 const CreateJournalForm = forwardRef<
   CreateJournalArchiveHandle,
@@ -71,14 +46,15 @@ const CreateJournalForm = forwardRef<
     journal_url_slug: "",
     journal_name: "",
     issn_number: "",
-    impact_factor: "",
-    impact_factor_equation: "",
+    created_date: getToday(),
+    updated_date: getToday(),
     journal_meta_keywords: "",
-    journal_ic_value: "",
-    main_category_id: null,
+    main_category_id: "0",
     journal_description: "",
     banner_image: "",
     sidebar_image: "",
+    journal_image: "",
+    deleted: "1",
     id: null,
   });
 
@@ -92,21 +68,10 @@ const CreateJournalForm = forwardRef<
   }));
 
   /*
-   * TinyMCE change handler
-   */
-  const handleEditorChange = (content: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      impact_factor_equation: content,
-    }));
-  };
-
-  /*
    * Load existing journal data when editing
    */
   useEffect(() => {
     const loadJournalData = async () => {
-      console.log(userData)
       if (!userData?.id) return;
 
       try {
@@ -125,30 +90,19 @@ const CreateJournalForm = forwardRef<
 
         setFormData({
           id: journal.id ?? null,
-
           journal_url_slug: journal.journal_url_slug?.toString() || "",
-
           journal_name: journal.journal_name?.toString() || "",
-
           issn_number: journal.issn_number?.toString() || "",
-
-          impact_factor: journal.impact_factor?.toString() || "",
-
-          impact_factor_equation:
-            journal.impact_factor_equation?.toString() || "",
-
+          created_date: journal.created_date?.toString() || getToday(),
+          updated_date: journal.updated_date?.toString() || getToday(),
           journal_meta_keywords:
             journal.journal_meta_keywords?.toString() || "",
-
-          journal_ic_value: journal.journal_ic_value?.toString() || "",
-
-          main_category_id: journal.main_category_id?.toString() || null,
-
+          main_category_id: journal.main_category_id?.toString() || "0",
           journal_description: journal.journal_description?.toString() || "",
-
           banner_image: journal.banner_image?.toString() || "",
-
           sidebar_image: journal.sidebar_image?.toString() || "",
+          journal_image: journal.journal_image?.toString() || "",
+          deleted: journal.deleted?.toString() || "1",
         });
       } catch (error) {
         console.error("Failed to load Journal", error);
@@ -177,6 +131,39 @@ const CreateJournalForm = forwardRef<
     }));
   };
 
+  const handleJournalImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      journal_image: e.target.files?.[0] ?? prev.journal_image,
+    }));
+  };
+
+  const getFilename = (value: File | string | null) => {
+    if (typeof value !== "string") return "";
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    return trimmed.replace(/\\/g, "/").split("/").pop() || "";
+  };
+
+  const uploadJournalImage = async () => {
+    if (!(formData.journal_image instanceof File)) {
+      return getFilename(formData.journal_image);
+    }
+
+    const formDataUpload = new FormData();
+    formDataUpload.append("journal_image", formData.journal_image);
+    const response = await axiosInstance.post("upload-files", formDataUpload);
+    const filename = response?.data?.file_data?.upload_data?.file_name;
+
+    if (typeof filename !== "string" || !filename) {
+      throw new Error("Journal image upload did not return a filename.");
+    }
+
+    return filename;
+  };
+
   /*
    * Submit journal
    */
@@ -188,33 +175,27 @@ const CreateJournalForm = forwardRef<
     setServerMsg("Saving...");
 
     try {
-      /*
-       * Payload matches the journal form fields
-       */
+      const journalImage = await uploadJournalImage();
+      const updatedDate = getToday();
       const payload = {
-        id: formData.id ?? undefined,
-
-        journal_url_slug: formData.journal_url_slug || "",
-
-        journal_name: formData.journal_name || "",
-
+        id: formData.id ?? null,
         issn_number: formData.issn_number || "",
-
-        impact_factor: formData.impact_factor || "",
-
-        impact_factor_equation: formData.impact_factor_equation || "",
-
+        created_date: formData.created_date || updatedDate,
+        updated_date: updatedDate,
+        journal_name: formData.journal_name || "",
+        journal_url_slug: formData.journal_url_slug || "",
+        main_category_id: formData.main_category_id || "0",
         journal_meta_keywords: formData.journal_meta_keywords || "",
-
-        journal_ic_value: formData.journal_ic_value || "",
-
-        main_category_id: formData.main_category_id,
-
-        journal_description: formData.journal_description || "",
-
         banner_image: formData.banner_image || "",
-
         sidebar_image: formData.sidebar_image || "",
+        journal_image: journalImage,
+        journal_description: formData.journal_description || "",
+        deleted: formData.deleted || "1",
+      };
+      const updatedFormData = {
+        ...formData,
+        journal_image: journalImage,
+        updated_date: updatedDate,
       };
 
       console.log("Journal Payload:", payload);
@@ -225,10 +206,8 @@ const CreateJournalForm = forwardRef<
 
       setServerMsg(msg);
 
-      /*
-       * Return the submitted data to parent
-       */
-      onConfirm?.(formData);
+      setFormData(updatedFormData);
+      onConfirm?.(payload);
     } catch (error: any) {
       console.error("Save Journal failed:", error);
 
@@ -271,13 +250,13 @@ const CreateJournalForm = forwardRef<
               </div>
             </div>
 
-            {/* Journal URL Slug */}
+            {/* Journal Slug */}
             <div className="row mb-3 align-items-center">
               <label
                 htmlFor="journal_url_slug"
                 className="col-sm-3 col-form-label text-sm-end fw-semibold"
               >
-                Journal URL Slug
+                Journal slug
               </label>
 
               <div className="col-sm-9">
@@ -293,13 +272,13 @@ const CreateJournalForm = forwardRef<
               </div>
             </div>
 
-            {/* ISSN Number */}
+            {/* Journal ISSN Number */}
             <div className="row mb-3 align-items-center">
               <label
                 htmlFor="issn_number"
                 className="col-sm-3 col-form-label text-sm-end fw-semibold"
               >
-                ISSN Number
+                Journal ISSN Number
               </label>
 
               <div className="col-sm-9">
@@ -314,78 +293,33 @@ const CreateJournalForm = forwardRef<
                 />
               </div>
             </div>
-
-            {/* Impact Factor */}
+                        {/* Journal Image */}
             <div className="row mb-3 align-items-center">
               <label
-                htmlFor="impact_factor"
+                htmlFor="journal_image"
                 className="col-sm-3 col-form-label text-sm-end fw-semibold"
               >
-                Impact Factor Value
+                Journal Image
               </label>
 
               <div className="col-sm-9">
                 <input
-                  type="text"
-                  required
-                  id="impact_factor"
-                  name="impact_factor"
+                  type="file"
+                  id="journal_image"
                   className="form-control"
-                  value={formData.impact_factor}
-                  onChange={handleChange}
+                  accept="image/png,image/jpeg,image/gif"
+                  required={!formData.journal_image}
+                  onChange={handleJournalImageChange}
                 />
+                {formData.journal_image && (
+                  <div className="mt-2 text-muted">
+                    {formData.journal_image instanceof File
+                      ? formData.journal_image.name
+                      : getFilename(formData.journal_image)}
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Impact Factor Equation */}
-            <div className="row mb-3">
-              <label
-                htmlFor="impact_factor_equation"
-                className="col-sm-3 col-form-label text-sm-end fw-semibold"
-              >
-                Impact Factor Equation
-              </label>
-
-              <div className="col-sm-9">
-                <Editor
-                  licenseKey="gpl"
-                  value={formData.impact_factor_equation}
-                  init={{
-                    height: 300,
-                    menubar: false,
-
-                    plugins: [
-                      "advlist",
-                      "autolink",
-                      "lists",
-                      "link",
-                      "image",
-                      "charmap",
-                      "preview",
-                      "anchor",
-                      "searchreplace",
-                      "visualblocks",
-                      "code",
-                      "fullscreen",
-                      "insertdatetime",
-                      "media",
-                      "table",
-                    ],
-
-                    toolbar:
-                      "undo redo | bold italic | " +
-                      "alignleft aligncenter alignright alignjustify | " +
-                      "bullist numlist outdent indent | " +
-                      "link image",
-
-                    skin: "oxide",
-                    content_css: "default",
-                  }}
-                  onEditorChange={handleEditorChange}
-                />
-              </div>
-            </div>
-
             {/* Journal Meta Keywords */}
             <div className="row mb-3 align-items-center">
               <label
@@ -402,27 +336,6 @@ const CreateJournalForm = forwardRef<
                   name="journal_meta_keywords"
                   className="form-control"
                   value={formData.journal_meta_keywords}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            {/* Journal IC Value */}
-            <div className="row mb-3 align-items-center">
-              <label
-                htmlFor="journal_ic_value"
-                className="col-sm-3 col-form-label text-sm-end fw-semibold"
-              >
-                Journal IC Value
-              </label>
-
-              <div className="col-sm-9">
-                <input
-                  type="text"
-                  id="journal_ic_value"
-                  name="journal_ic_value"
-                  className="form-control"
-                  value={formData.journal_ic_value}
                   onChange={handleChange}
                 />
               </div>
@@ -449,13 +362,13 @@ const CreateJournalForm = forwardRef<
               </div>
             </div>
 
-            {/* Banner Image */}
+            {/* Journal Banner Image */}
             <div className="row mb-3 align-items-center">
               <label
                 htmlFor="banner_image"
                 className="col-sm-3 col-form-label text-sm-end fw-semibold"
               >
-                Banner Image
+                Journal banner Image
               </label>
 
               <div className="col-sm-9">
@@ -471,7 +384,6 @@ const CreateJournalForm = forwardRef<
                 />
               </div>
             </div>
-
             {/* Sidebar Image */}
             <div className="row mb-3 align-items-center">
               <label

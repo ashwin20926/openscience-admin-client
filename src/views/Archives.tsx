@@ -8,8 +8,6 @@ import { useConfirmDelete } from '../common/ConfirmDeleteContext';
 interface JournalOption {
   id: number;
   journal_name: string;
-  category_name: string;
-  category_id: number;
 }
 
 interface ArchiveOption {
@@ -22,6 +20,21 @@ const archiveTypes: ArchiveOption[] = [
   { id: 2, name: 'Current Issue' },
   { id: 3, name: 'Archive' },
   { id: 4, name: 'Special Issue' },
+];
+
+const articleTypes: ArchiveOption[] = [
+  { id: 1, name: 'Review Article' },
+  { id: 2, name: 'Research Article' },
+  { id: 3, name: 'Supplementary Information' },
+  { id: 4, name: 'Case Report' },
+  { id: 5, name: 'Editorial' },
+  { id: 6, name: 'Short Communication' },
+  { id: 7, name: 'Letter to Editor' },
+  { id: 8, name: 'Clinical Images' },
+  { id: 9, name: 'Images Section' },
+  { id: 10, name: 'Pictorial Essay' },
+  { id: 11, name: 'Commentary' },
+  { id: 12, name: 'Case Series' },
 ];
 
 const Archives = () => {
@@ -50,15 +63,6 @@ const Archives = () => {
   };
 
 
-  const groupedJournals = journals.reduce<Record<string, JournalOption[]>>((acc, journal) => {
-    const group = journal.category_name || 'Other';
-    if (!acc[group]) {
-      acc[group] = [];
-    }
-    acc[group].push(journal);
-    return acc;
-  }, {});
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     fetchArchiveData();
@@ -80,16 +84,51 @@ const Archives = () => {
     setShowModal(true);
   };
 
+  const isLocalhost = window.location.hostname.includes('localhost');
+  const fulltextBaseUrl = isLocalhost
+    ? 'http://localhost/openscience/fulltextarticles/'
+    : 'https://www.opensciencepublications.com/fulltextarticles/';
+  const archivePdfBaseUrl = isLocalhost
+    ? 'http://localhost/openscience/wp-content/uploads/'
+    : 'https://www.opensciencepublications.com/wp-content/uploads/';
+
   const [columnDefs] = useState([
     { headerName: "journal Name", field: "journal_name", width: 300 },
     { headerName: "Article Title", field: "article_title", width: 300 },
-    { headerName: "Archive In", width: 150, field: "archive_in", cellRenderer: (params: any) => {
+    { headerName: "Article Link", field: "article_link", width: 250 },
+    { headerName: "Article Author", field: "article_authors", width: 220 },
+    { headerName: "Volume", field: "volume_name", width: 140 },
+    { headerName: "Archive In", width: 170, field: "archive_in", cellRenderer: (params: any) => {
       const archiveIn = params.value;
-      const archiveType = archiveTypes.find(type => type.id === archiveIn);
+      const archiveType = archiveTypes.find(type => String(type.id) === String(archiveIn));
       return archiveType ? archiveType.name : 'Unknown';
     } },
+    { headerName: "Article Type", width: 220, field: "article_type", cellRenderer: (params: any) => {
+      const articleType = articleTypes.find(type => String(type.id) === String(params.value));
+      return articleType ? articleType.name : '';
+    } },
+    {
+      headerName: "Article Fulltext",
+      field: "archive_fulltext",
+      width: 250,
+      cellRenderer: (params: any) => params.value ? (
+        <a href={`${fulltextBaseUrl}${params.value}`} target="_blank" rel="noopener noreferrer">
+          {params.value}
+        </a>
+      ) : '',
+    },
     { headerName: "Archive Year", field: "archive_year", width: 110 },
-    { headerName: "Archive Pdf", field: "archive_pdf", width: 250 },
+    {
+      headerName: "Archive Pdf",
+      field: "archive_pdf",
+      width: 250,
+      cellRenderer: (params: any) => params.value ? (
+        <a href={`${archivePdfBaseUrl}${params.value}`} target="_blank" rel="noopener noreferrer">
+          {params.value}
+        </a>
+      ) : '',
+    },
+    { headerName: "Supli Pdf", field: "supli_pdf", width: 250 },
   ]);
 
   const getTitle = () => {
@@ -168,14 +207,10 @@ const Archives = () => {
                 onChange={(event) => setSelectedJournal(event.target.value)}
               >
                 <option value="">Select Journal</option>
-                {Object.entries(groupedJournals).map(([categoryName, items]) => (
-                  <optgroup label={categoryName} key={categoryName}>
-                    {items.map((journal) => (
-                      <option value={journal.id} key={journal.id}>
-                        {journal.journal_name}
-                      </option>
-                    ))}
-                  </optgroup>
+                {journals.map((journal) => (
+                  <option value={journal.id} key={journal.id}>
+                    {journal.journal_name}
+                  </option>
                 ))}
               </select>
             </div>

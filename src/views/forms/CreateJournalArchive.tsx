@@ -40,7 +40,6 @@ interface CreateJournalArchiveProps {
 type UploadFieldValue = File | string | null;
 
 interface CreateJournalArchiveFormData {
-  categoryId: string;
   journalId: string;
   archiveDesc: string;
   articleTitle: string;
@@ -51,6 +50,7 @@ interface CreateJournalArchiveFormData {
   doiLink: string;
   archiveIn: string;
   archiveYear: string;
+  articleType: string;
   archiveVolume: string;
   archiveFulltext: string;
   archivePdf: UploadFieldValue;
@@ -61,7 +61,6 @@ interface CreateJournalArchiveFormData {
 const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalArchiveProps>(({ onConfirm, getLoading, userData }, ref) => {
   const formRef = useRef<HTMLFormElement | null>(null);
   const [formData, setFormData] = useState<CreateJournalArchiveFormData>({
-    categoryId: '',
     journalId: '',
     archiveDesc: '',
     articleTitle: '',
@@ -72,6 +71,7 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
     doiLink: '',
     archiveIn: '',
     archiveYear: '',
+    articleType: '',
     archiveVolume: '',
     archiveFulltext: '',
     archivePdf: null,
@@ -85,19 +85,26 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
   useImperativeHandle(ref, () => ({
     requestSubmit: () => formRef.current?.requestSubmit(),
   }));
-  const [journalGroups, setJournalGroups] = useState<Array<{ categoryName: string; journals: Array<{ id: string | number; label: string }> }>>([]);
+  const [journalOptions, setJournalOptions] = useState<Array<{ id: string | number; label: string }>>([]);
   const [journalLoading, setJournalLoading] = useState(false);
   const [volumeOptions, setVolumeOptions] = useState<Array<{ id: string | number; label: string }>>([]);
   const [volumeLoading, setVolumeLoading] = useState(false);
 
-  const categories = [
-    { id: '10', name: 'Medical' },
-    { id: '20', name: 'Biotechnology' },
-    { id: '30', name: 'Biology' },
-    { id: '40', name: 'Pharmaceutical' },
-  ];
-
   const archiveYears = Array.from({ length: 27 }, (_, i) => 2000 + i);
+  const articleTypes = [
+    { id: '1', name: 'Review Article' },
+    { id: '2', name: 'Research Article' },
+    { id: '3', name: 'Supplementary Information' },
+    { id: '4', name: 'Case Report' },
+    { id: '5', name: 'Editorial' },
+    { id: '6', name: 'Short Communication' },
+    { id: '7', name: 'Letter to Editor' },
+    { id: '8', name: 'Clinical Images' },
+    { id: '9', name: 'Images Section' },
+    { id: '10', name: 'Pictorial Essay' },
+    { id: '11', name: 'Commentary' },
+    { id: '12', name: 'Case Series' },
+  ];
 
   const formatDateForInput = (value: string | null | undefined) => {
     if (!value) return '';
@@ -119,29 +126,13 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
       const response = await axiosInstance.get('getOnlyJournals');
       const data = response?.data?.data || [];
 
-      const grouped: Record<string, Array<{ id: string | number; label: string }>> = {};
-
-      data.forEach((item: any) => {
-        const categoryName = item.category_name || 'Uncategorized';
-        if (!grouped[categoryName]) {
-          grouped[categoryName] = [];
-        }
-
-        grouped[categoryName].push({
+      setJournalOptions(data.map((item: any) => ({
           id: item.id ?? item.journal_id ?? '',
           label: item.journal_name || `Journal ${item.id}`,
-        });
-      });
-
-      const groupedOptions: Array<{ categoryName: string; journals: Array<{ id: string | number; label: string }> }> = Object.keys(grouped).map((categoryName) => ({
-        categoryName,
-        journals: grouped[categoryName],
-      }));
-
-      setJournalGroups(groupedOptions);
+        })));
     } catch (error) {
       console.error('Failed to fetch journal options', error);
-      setJournalGroups([]);
+      setJournalOptions([]);
     } finally {
       setJournalLoading(false);
     }
@@ -185,7 +176,6 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
         if (!archive) return;
 
         setFormData({
-          categoryId: archive.category_id?.toString() || '',
           journalId: archive.journal_id?.toString() || '',
           id: archive.id || null,
           archiveDesc: archive.archive_desc || '',
@@ -197,6 +187,7 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
           doiLink: archive.doi_link || '',
           archiveIn: archive.archive_in?.toString() || '',
           archiveYear: archive.archive_year?.toString() || '',
+          articleType: archive.article_type?.toString() || '',
           archiveVolume: archive.archive_volume?.toString() || '',
           archiveFulltext: archive.archive_fulltext || '',
           archivePdf: archive.archive_pdf || null,
@@ -279,10 +270,10 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
         doi_name: updatedData.doiName || '',
         doi_link: updatedData.doiLink || '',
         journal_id: updatedData.journalId || '',
-        category_id: updatedData.categoryId || '',
         archive_desc: updatedData.archiveDesc || '',
         archive_doi: updatedData.doiName || '',
         archive_year: updatedData.archiveYear || '',
+        article_type: updatedData.articleType || '',
         archive_volume: updatedData.archiveVolume || '',
         archive_fulltext: updatedData.archiveFulltext || '',
         archive_pdf: getFilename(updatedData.archivePdf),
@@ -311,29 +302,6 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
         <div className="card-body p-4">
           <form ref={formRef} onSubmit={handleSubmit} id="journal_archive_form">
             <div className="row mb-3 align-items-center">
-              <label htmlFor="category_id" className="col-sm-3 col-form-label text-sm-end fw-semibold">
-                Category Name
-              </label>
-              <div className="col-sm-9">
-                <select
-                  id="category_id"
-                  name="categoryId"
-                  className="form-select"
-                  value={formData.categoryId}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="row mb-3 align-items-center">
               <label htmlFor="journal_id" className="col-sm-3 col-form-label text-sm-end fw-semibold">
                 Journal Name
               </label>
@@ -349,14 +317,10 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
                   <option value="">
                     {journalLoading ? 'Loading journals...' : 'Select Journal'}
                   </option>
-                  {journalGroups.map((group) => (
-                    <optgroup key={group.categoryName} label={group.categoryName}>
-                      {group.journals.map((journal) => (
-                        <option key={journal.id} value={journal.id}>
-                          {journal.label}
-                        </option>
-                      ))}
-                    </optgroup>
+                  {journalOptions.map((journal) => (
+                    <option key={journal.id} value={journal.id}>
+                      {journal.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -533,6 +497,28 @@ const CreateJournalPage = forwardRef<CreateJournalArchiveHandle, CreateJournalAr
                   {archiveYears.map((year) => (
                     <option key={year} value={year}>
                       {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="row mb-3 align-items-center">
+              <label htmlFor="article_type" className="col-sm-3 col-form-label text-sm-end fw-semibold">
+                Article Type
+              </label>
+              <div className="col-sm-9">
+                <select
+                  id="article_type"
+                  name="articleType"
+                  className="form-select"
+                  value={formData.articleType}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Article Type</option>
+                  {articleTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
                     </option>
                   ))}
                 </select>

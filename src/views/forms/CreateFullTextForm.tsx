@@ -24,7 +24,7 @@ interface CreateJournalArchiveFormData {
   categoryId: string;
   journal_id: string;
   submission_date: string;
-  publication_date: string;
+  published_date: string;
   accepted_date: string;
   citation_volume: string;
   citation_issue: string;
@@ -71,7 +71,7 @@ const CreateFullTextForm = forwardRef<CreateJournalArchiveHandle, CreateJournalA
     categoryId: '',
     journal_id: '',
     submission_date: '',
-    publication_date: '',
+    published_date: '',
     accepted_date: '',
     citation_volume: '',
     citation_issue: '',
@@ -327,7 +327,7 @@ const CreateFullTextForm = forwardRef<CreateJournalArchiveHandle, CreateJournalA
             categoryId: selectedArticle?.category_id?.toString() || '',
             journal_id: selectedArticle?.journal_id?.toString() || '',
             submission_date: selectedArticle?.submission_date || '',
-            publication_date: selectedArticle?.publication_date || '',
+            published_date: selectedArticle?.published_date || '',
             accepted_date: selectedArticle?.accepted_date || '',
             citation_volume: selectedArticle?.citation_volume || '',
             citation_issue: selectedArticle?.citation_issue || '',
@@ -569,16 +569,16 @@ const CreateFullTextForm = forwardRef<CreateJournalArchiveHandle, CreateJournalA
               </div>
             </div>
             <div className="row mb-3 align-items-center">
-              <label htmlFor="publication_date" className="col-sm-3 col-form-label text-sm-end fw-semibold">
-                Publication Date
+              <label htmlFor="published_date" className="col-sm-3 col-form-label text-sm-end fw-semibold">
+                Published Date
               </label>
               <div className="col-sm-9">
                 <input
                   type="date"
-                  id="publication_date"
-                  name="publication_date"
+                  id="published_date"
+                  name="published_date"
                   className="form-control"
-                  value={formData.publication_date}
+                  value={formData.published_date}
                   onChange={handleChange}
                 />
               </div>

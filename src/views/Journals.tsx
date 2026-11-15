@@ -69,6 +69,7 @@ const Journals = () => {
   const [columnDefs] = useState([
     { headerName: "Journal Name", field: "journal_name", width: 350 },
     { headerName: "ISSN Number", field: "issn_number", width: 250 },
+    { headerName: "Journal Url Slug", field: "journal_url_slug", width: 250 },
     { headerName: "Created Date", field: "created_date", width: 200 },
 
   ]);

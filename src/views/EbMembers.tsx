@@ -8,8 +8,6 @@ import { useConfirmDelete } from '../common/ConfirmDeleteContext';
 interface JournalOption {
   id: number;
   journal_name: string;
-  category_name: string;
-  category_id: number;
 }
 
 const EbMembers = () => {
@@ -37,15 +35,6 @@ const EbMembers = () => {
   };
 
 
-  const groupedJournals = journals.reduce<Record<string, JournalOption[]>>((acc, journal) => {
-    const group = journal.category_name || 'Other';
-    if (!acc[group]) {
-      acc[group] = [];
-    }
-    acc[group].push(journal);
-    return acc;
-  }, {});
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     fetchEbMembers();
@@ -64,26 +53,41 @@ const EbMembers = () => {
     setShowModal(true);
   };
 
+  const isLocalhost = window.location.hostname.includes('localhost');
+  const ebMemberPhotoBaseUrl = isLocalhost
+    ? 'http://localhost/openscience/wp-content/uploads/'
+    : 'https://www.opensciencepublications.com/wp-content/uploads/';
+
   const [columnDefs] = useState([
-    { headerName: "Category Name", field: "category_name", width: 150 },
     { headerName: "Journal Name", field: "journal_name", width: 300 },
     { headerName: "Eb Member Name", field: "eb_member_name", width: 250 },
     { headerName: "Eb Member Email", field: "eb_member_email", width: 250 },
-    { headerName: "Eb Member Photo", field: "eb_member_photo", width: 200, cellRenderer: (params: any) => {
-      if (!params.value) return;
-      return <img src={`https://www.avensonline.org/wp-content/uploads/${params.value}`}  alt="EB Member Photo" />
+    { headerName: "Eb Member Photo", field: "eb_member_photo", cellRenderer: (params: any) => {
+      if (!params.value) return <span>No Image found</span>;
+      return (
+        <>
+          <img
+            src={`${ebMemberPhotoBaseUrl}${params.value}`}
+            alt="EB Member Photo"
+            style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100px', objectFit: 'contain' }}
+            onError={(event) => {
+              event.currentTarget.style.display = 'none';
+              event.currentTarget.nextElementSibling?.removeAttribute('hidden');
+            }}
+          />
+          <span hidden>No Image found</span>
+        </>
+      );
     }, autoHeight: true},
-    { headerName: 'Eb Member Country', field: 'eb_member_country', width: 200 },
     { headerName: 'Editor Chief', field: 'editor_chief', width: 150, cellRenderer: (params: any) => {
       return params.value == '0' ? 'No' : 'Yes'
     }},
-    { headerName: 'Post Slug', field: 'eb_post_slug', width: 200 },
-    { headerName: 'Journal Slug', field: 'eb_journal_slug', width: 250  },
+    { headerName: 'Eb Member Country', field: 'eb_member_country', width: 200 },
     { headerName: 'Updated Date', field: 'updated_date'}
   ]);
 
   const getTitle = () => {
-    return userData?.id ? "Edit Archive" : "Create Archive";
+    return userData?.id ? "Edit Eb Member" : "Create Eb Member";
   }
 
   const handleLoading = (value: any) => {
@@ -158,14 +162,10 @@ const EbMembers = () => {
                 onChange={(event) => setSelectedJournal(event.target.value)}
               >
                 <option value="">Select Journal</option>
-                {Object.entries(groupedJournals).map(([categoryName, items]) => (
-                  <optgroup label={categoryName} key={categoryName}>
-                    {items.map((journal) => (
-                      <option value={journal.id} key={journal.id}>
-                        {journal.journal_name}
-                      </option>
-                    ))}
-                  </optgroup>
+                {journals.map((journal) => (
+                  <option value={journal.id} key={journal.id}>
+                    {journal.journal_name}
+                  </option>
                 ))}
               </select>
             </div>

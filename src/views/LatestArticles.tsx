@@ -66,12 +66,31 @@ const LatestArticles = () => {
     setShowModal(true);
   };
 
+  const isLocalhost = window.location.hostname.includes('localhost');
+  const articleImageBaseUrl = isLocalhost
+    ? 'http://localhost/openscience/wp-content/uplaods/'
+    : 'https://www.opensciencepublications.com/wp-content/upload/';
+
   const [columnDefs] = useState([
     { headerName: "Article Name", field: "article_name", width: 300, wrapText: true, autoHeight: true },
     { headerName: "Pdf Link", field: "pdf_link", width: 200 },
     { headerName: "Journal Name", field: "journal_name", width: 250 },
-    { headerName: "Article Image", field: "article_image", width: 200, cellRenderer:  (params: any) => {
-      return <img src={`https://www.avensonline.org/wp-content/uploads/${params.value}`}  alt="Article Image" />
+    { headerName: "Article Image", field: "article_image", width: 200, cellRenderer: (params: any) => {
+      if (!params.value) return <span>No image found</span>;
+
+      return (
+        <>
+          <img
+            src={`${articleImageBaseUrl}${params.value}`}
+            alt="Article Image"
+            onError={(event) => {
+              event.currentTarget.style.display = 'none';
+              event.currentTarget.nextElementSibling?.removeAttribute('hidden');
+            }}
+          />
+          <span hidden>No image found</span>
+        </>
+      );
     } },
     { headerName: "Author Name", field: "author_name", width: 200 },
     { headerName: "Created Date", field: "created_date", width: 200 },
