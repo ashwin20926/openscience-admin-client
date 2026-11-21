@@ -60,20 +60,30 @@ const ContactEnquiries = () => {
 
 
   const [columnDefs] = useState([
-    {
-      headerName: "Name",
-      field: "name"
-    },
-    { headerName: "Email", field: "email" },
-    { headerName: "Phone No", field: "phone_no" },
+    { headerName: "First Name", field: "user_first_name" },
+    { headerName: "Last Name", field: "user_last_name" },
+    { headerName: "Email", field: "user_email" },
+    { headerName: "Phone", field: "user_phone" },
     {
       headerName: 'Read Status',
       field: 'read_status',
       cellRenderer: ReadStatusButtonRenderer,
       cellRendererParams: { onUpdate: updateReadStatus },
     },
-    { headerName: "Message", field: "message" },
-    { headerName: "Created Date", field: "created_date" }
+    { headerName: "Message", field: "user_message" },
+    {
+      headerName: "Sent Date",
+      field: "created_date",
+      cellRenderer: (params: any) => {
+        const value = params.value;
+        if (!value) return "";
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+
+        return date.toLocaleString();
+      },
+    }
   ]);
 
 

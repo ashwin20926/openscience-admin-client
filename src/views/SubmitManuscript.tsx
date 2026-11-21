@@ -88,7 +88,8 @@ const SubmitManuscript = () => {
     },
     { headerName: "First Name", field: "firstname" },
     { headerName: "Email", field: "email" },
-    { headerName: "Alternate Email", field: "alter_email" },
+    { headerName: "Phone No", field: "phoneno" },
+    { headerName: "Tel No", field: "tel_no" },
     {
       headerName: "Read Status",
       field: "read_status",

@@ -72,7 +72,7 @@ const Testimonials = () => {
     { headerName: "User Name", field: "user_name", width: 300, wrapText: true, autoHeight: true },
     { headerName: "Description", field: "testimonial_desc", width: 200 },
     { headerName: "User Image", field: "user_img", width: 200, autoHeight: true, cellRenderer:  (params: any) => {
-      return <img src={`https://www.avensonline.org/wp-content/uploads/${params.value}`}  alt="User Image" />
+      return <img src={`http://localhost/openscience/wp-content/uploads/${params.value}`}  alt="User Image" />
     } },
     { headerName: "User university", field: "user_university", width: 250 },
     { headerName: "User Designation", field: "user_desig", width: 250 },

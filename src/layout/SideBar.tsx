@@ -47,9 +47,9 @@ function SideBar() {
           <li>
             <Link to="/uploadFilesToServer">Upload Files to Server</Link>
           </li>
-           <li>
+           {/* <li>
             <Link to="/siteMapTracking">Sitemap Tracking</Link>
-          </li>        
+          </li>         */}
           {user?.roleId === 1 && false && (
             <li className="nav-item">
               <Link to="/users">Users</Link>
